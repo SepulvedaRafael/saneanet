@@ -15,14 +15,14 @@ MSGS_FILE = DATA_DIR / "messages.json"
 FILES_DIR = DATA_DIR / "files"
 
 
-def ensure_dirs() -> None:
+def garantir_diretorios() -> None:
     DATA_DIR.mkdir(exist_ok=True)
     FILES_DIR.mkdir(exist_ok=True)
     if not MSGS_FILE.exists():
         MSGS_FILE.write_text("[]", encoding="utf-8")
 
 
-def append_message(msg: dict) -> None:
+def acrescentar_mensagem(msg: dict) -> None:
     try:
         messages = json.loads(MSGS_FILE.read_text(encoding="utf-8") or "[]")
     except json.JSONDecodeError:
@@ -60,7 +60,7 @@ async def handle_client(
                     f"{msg.get('urgency')} | {msg.get('message')[:50]}"
                 )
 
-            append_message(msg)
+            acrescentar_mensagem(msg)
 
             writer.write(b'{"status":"ok"}\n')
             await writer.drain()
@@ -76,7 +76,7 @@ async def handle_client(
 
 
 async def main() -> None:
-    ensure_dirs()
+    garantir_diretorios()
     server = await asyncio.start_server(handle_client, HOST, PORT)
     print(f"=" * 60)
     print(f"🌊 SANEANET - Servidor da Secretaria")
