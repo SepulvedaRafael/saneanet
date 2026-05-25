@@ -48,13 +48,16 @@ with col_urg:
     )
 
 with col_ind:
-    industries = sorted(
-        set(m.get("industry", "Não informada") for m in messages if m.get("industry"))
-    )
+    industries_raw = [m.get("industry") for m in messages]
+    industries = sorted(set(i for i in industries_raw if i))
+
+    if any(m.get("industry") in [None, ""] for m in messages):
+        industries = ["Não informada"] + [i for i in industries if i != "Não informada"]
+
     industry_filter = st.multiselect(
         "🏭 Indústria",
         industries,
-        default=industries if industries else ["Não informada"],
+        default=industries,
     )
 
 with col_shift:
@@ -75,8 +78,8 @@ filtered = [
     m
     for m in messages
     if m.get("urgency") in urgency_filter
-    and m.get("industry") in industry_filter
-    and m.get("shift") in shift_filter
+    and (m.get("industry") or "Não informada") in industry_filter
+    and (m.get("shift") or "Não informado") in shift_filter
 ]
 
 st.subheader(f"📋 Relatórios recebidos ({len(filtered)})")
