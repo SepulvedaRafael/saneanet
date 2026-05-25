@@ -54,7 +54,7 @@ uploaded_file = st.file_uploader(
 )
 
 
-async def send_text(ip: str, port: int, payload: dict) -> tuple[bool, str]:
+async def enviar_texto(ip: str, port: int, payload: dict) -> tuple[bool, str]:
     try:
         reader, writer = await asyncio.open_connection(ip, port)
         writer.write(serializar_json(payload))
@@ -67,7 +67,7 @@ async def send_text(ip: str, port: int, payload: dict) -> tuple[bool, str]:
         return False, str(e)
 
 
-async def send_file(
+async def enviar_arquivo(
     ip: str, port: int, payload: dict, file_bytes: bytes
 ) -> tuple[bool, str]:
     try:
@@ -103,7 +103,9 @@ with c_a:
                 file_size=len(uploaded_file.getvalue()) if uploaded_file else 0,
             )
             with st.spinner("Transmitindo..."):
-                ok, resp = asyncio.run(send_text(server_ip, int(server_port), payload))
+                ok, resp = asyncio.run(
+                    enviar_texto(server_ip, int(server_port), payload)
+                )
             if ok:
                 st.success(f"✅ Mensagem entregue à Secretaria! ({resp})")
             else:
@@ -126,7 +128,7 @@ with c_b:
             )
             with st.spinner("Enviando arquivo..."):
                 ok, resp = asyncio.run(
-                    send_file(
+                    enviar_arquivo(
                         server_ip, int(server_port), payload, uploaded_file.getvalue()
                     )
                 )

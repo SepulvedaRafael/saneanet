@@ -15,7 +15,7 @@ MSGS_FILE = DATA_DIR / "messages.json"
 FILES_DIR = DATA_DIR / "files"
 
 
-def load_messages() -> list:
+def carregar_mensagens() -> list:
     if not MSGS_FILE.exists():
         return []
     try:
@@ -24,7 +24,7 @@ def load_messages() -> list:
         return []
 
 
-messages = load_messages()
+messages = carregar_mensagens()
 
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("📨 Total de relatórios", len(messages))
