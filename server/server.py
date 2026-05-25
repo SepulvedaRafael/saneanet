@@ -8,7 +8,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 from shared.protocol import DELIMITER, decodificar_json
 
 HOST = "0.0.0.0"
-PORT = 9000
+PORT = 9999
 
 DATA_DIR = Path(__file__).parent / "data"
 MSGS_FILE = DATA_DIR / "messages.json"
