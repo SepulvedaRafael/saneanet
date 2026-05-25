@@ -1,5 +1,3 @@
-"""Painel de controle da Secretaria - lê os dados persistidos pelo servidor."""
-
 import json
 import sys
 from pathlib import Path
@@ -28,7 +26,6 @@ def load_messages() -> list:
 
 messages = load_messages()
 
-# --- Métricas ---
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("📨 Total de relatórios", len(messages))
 c2.metric(
@@ -41,41 +38,65 @@ c4.metric("📎 Arquivos recebidos", sum(1 for m in messages if m.get("type") ==
 
 st.divider()
 
-# --- Filtros ---
-col_a, col_b = st.columns([2, 1])
-with col_a:
+col_urg, col_ind, col_shift, col_btn = st.columns([2, 3, 2, 1])
+
+with col_urg:
     urgency_filter = st.multiselect(
-        "Filtrar por urgência",
+        "🚦 Urgência",
         ["red", "yellow", "green"],
         default=["red", "yellow", "green"],
     )
-with col_b:
+
+with col_ind:
+    industries = sorted(
+        set(m.get("industry", "Não informada") for m in messages if m.get("industry"))
+    )
+    industry_filter = st.multiselect(
+        "🏭 Indústria",
+        industries,
+        default=industries if industries else ["Não informada"],
+    )
+
+with col_shift:
+    shifts = ["🌅 Manhã", "🌇 Tarde", "🌙 Noite"]
+    shift_filter = st.multiselect(
+        "⏰ Turno",
+        shifts,
+        default=shifts,
+    )
+
+with col_btn:
     st.write("")
     st.write("")
-    if st.button("🔄 Atualizar agora"):
+    if st.button("🔄 Atualizar", use_container_width=True):
         st.rerun()
 
-filtered = [m for m in messages if m.get("urgency") in urgency_filter]
+filtered = [
+    m
+    for m in messages
+    if m.get("urgency") in urgency_filter
+    and m.get("industry") in industry_filter
+    and m.get("shift") in shift_filter
+]
 
-# --- Lista de relatórios ---
-st.subheader("📋 Relatórios recebidos")
+st.subheader(f"📋 Relatórios recebidos ({len(filtered)})")
 if not filtered:
-    st.info("Nenhum relatório ainda. Aguardando inspetores...")
+    st.info("Nenhum relatório com os filtros selecionados. Aguardando inspetores...")
 else:
     icon = {"red": "🔴", "yellow": "🟡", "green": "🟢"}
     for m in reversed(filtered):
         urg = m.get("urgency", "green")
         titulo = (
             f"{icon.get(urg, '⚪')} [{m.get('inspector_id')}] "
-            f"{m.get('message', '')[:70]}  —  {m.get('timestamp', '')[:19]}"
+            f"{m.get('message', '')[:60]}  —  {m.get('timestamp', '')[:19]}"
         )
         with st.expander(titulo):
             c_a, c_b = st.columns(2)
             with c_a:
                 st.write(f"**Inspetor:** {m.get('inspector_id')}")
+                st.write(f"**Indústria:** {m.get('industry', 'Não informada')}")
+                st.write(f"**Turno:** {m.get('shift', 'Não informado')}")
                 st.write(f"**Urgência:** {urg}")
-                loc = m.get("location", {})
-                st.write(f"**Local:** lat {loc.get('lat')}, lng {loc.get('lng')}")
                 st.write(f"**Mensagem:** {m.get('message')}")
             with c_b:
                 st.json(m)

@@ -1,16 +1,13 @@
-"""Protocolo compartilhado entre cliente e servidor.
-Formato: JSON codificado em UTF-8 terminado por \\n (DELIMITER).
-Para arquivos: header JSON + bytes do arquivo + DELIMITER.
-"""
 import json
 from datetime import datetime
 
 DELIMITER = b"\n"
 
 
-def make_message(
+def enviar_mensagem(
     inspector_id: str,
-    location: dict,
+    industry: str,
+    shift: str,
     urgency: str,
     message: str,
     msg_type: str = "text",
@@ -19,21 +16,22 @@ def make_message(
 ) -> dict:
     return {
         "type": msg_type,
+        "timestamp": datetime.now().isoformat(),
         "inspector_id": inspector_id,
-        "location": location,
+        "industry": industry,
+        "shift": shift,
         "urgency": urgency,
         "message": message,
         "filename": filename,
         "file_size": file_size,
-        "timestamp": datetime.now().isoformat(),
     }
 
 
-def encode(data: dict) -> bytes:
+def serializar_json(data: dict) -> bytes:
     """Serializa dict em JSON UTF-8 e adiciona delimitador."""
     return json.dumps(data, ensure_ascii=False).encode("utf-8") + DELIMITER
 
 
-def decode(raw: bytes) -> dict:
+def decodificar_json(raw: bytes) -> dict:
     """Decodifica bytes JSON UTF-8 em dict."""
     return json.loads(raw.decode("utf-8").strip())

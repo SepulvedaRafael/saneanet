@@ -1,7 +1,3 @@
-"""Servidor TCP da Secretaria usando asyncio (Berkeley Sockets).
-Recebe alertas e arquivos dos inspetores e persiste em disco.
-"""
-
 import asyncio
 import json
 import sys
@@ -9,9 +5,9 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
-from shared.protocol import DELIMITER, decode
+from shared.protocol import DELIMITER, decodificar_json
 
-HOST = "0.0.0.0"  # aceita conexões de qualquer interface
+HOST = "0.0.0.0"
 PORT = 9000
 
 DATA_DIR = Path(__file__).parent / "data"
@@ -47,13 +43,12 @@ async def handle_client(
             header = await reader.readline()
             if not header:
                 break
-            msg = decode(header)
+            msg = decodificar_json(header)
 
-            # Se for arquivo, lê os N bytes anunciados + delimitador final
             if msg.get("type") == "file":
                 file_size = int(msg.get("file_size", 0))
                 file_data = await reader.readexactly(file_size)
-                await reader.readuntil(DELIMITER)  # consome o \n final
+                await reader.readuntil(DELIMITER)
                 fname = msg.get("filename") or "arquivo"
                 safe_name = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{fname}"
                 (FILES_DIR / safe_name).write_bytes(file_data)
@@ -67,7 +62,6 @@ async def handle_client(
 
             append_message(msg)
 
-            # Envia ACK de volta ao inspetor
             writer.write(b'{"status":"ok"}\n')
             await writer.drain()
 
